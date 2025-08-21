@@ -30,7 +30,6 @@ type SentimentSummary struct {
 
 var allTweets []Tweet
 
-// Memuat data dari CSV saat server pertama kali hidup
 func loadData() {
 	file, err := os.Open("hasil_analisis_sentimen_Aardiiiiy_Final.csv")
 	if err != nil {
@@ -44,30 +43,26 @@ func loadData() {
 		log.Fatal("Gagal membaca CSV: ", err)
 	}
 
-	// Menggunakan layout format tanggal yang benar sesuai isi CSV
-	// time.RubyDate dengan format: "Mon Jan 02 15:04:05 -0700 2006"
 	const timeLayout = time.RubyDate
 
-	// Kolom ke-4 adalah 'created_at' (index 3) dan ke-8 adalah 'sentiment' (index 7)
 	for i, record := range records {
 		if i == 0 {
 			continue
-		} // Lewati baris header
+		}
 
-		createdAt, err := time.Parse(timeLayout, record[3])
+		createdAt, err := time.Parse(timeLayout, record[2])
 		if err != nil {
 			log.Printf("Peringatan: Melewati baris %d karena format tanggal salah: '%s'", i+1, record[3])
 			continue
 		}
 		allTweets = append(allTweets, Tweet{
 			CreatedAt: createdAt,
-			Sentiment: record[7],
+			Sentiment: record[6],
 		})
 	}
 	fmt.Printf("Berhasil memuat %d data tweet.\n", len(allTweets))
 }
 
-// Handler yang akan merespon permintaan dari frontend
 func getSentimentData(w http.ResponseWriter, r *http.Request) {
 	startDateStr := r.URL.Query().Get("startDate")
 	endDateStr := r.URL.Query().Get("endDate")
@@ -83,7 +78,7 @@ func getSentimentData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		endDate = time.Now()
 	}
-	endDate = endDate.Add(24*time.Hour - 1*time.Second) // Inklusif sampai akhir hari
+	endDate = endDate.Add(24*time.Hour - 1*time.Second)
 
 	var positive, neutral, negative int
 	for _, tweet := range allTweets {
